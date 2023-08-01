@@ -6,11 +6,13 @@ rest_api = Blueprint('rest_api', __name__)
 
 @rest_api.route("/")
 def index():
-    return redirect(url_for('status'))
+    return redirect(url_for('rest_api.status'))
 
 @rest_api.route("/status")
 def status():
     return render_template('status.html', branding=False)
+
+
 
 @rest_api.route("/plan")
 def plan():

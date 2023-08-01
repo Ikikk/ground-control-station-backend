@@ -12,7 +12,7 @@ drone_api = Blueprint('engine_controller', __name__)
 '''
 API dalam melakukan koneksi ke vehicle
 '''
-@drone_api.route("/api/connect", methods=['POST','PUT'])
+@drone_api.route("/connect", methods=['POST','PUT'])
 def api_connect():
     if request.method == 'POST' or request.method == 'PUT':
         try:
@@ -51,7 +51,7 @@ def api_connect():
 '''
 API dalam memutuskan koneksi vehicle
 '''
-@drone_api.route("/api/disconnect", methods=['POST','PUT'])
+@drone_api.route("/disconnect", methods=['POST','PUT'])
 def api_disconnect():
     if request.method =='POST' or request.method == 'PUT':
         try:
@@ -67,15 +67,15 @@ def api_disconnect():
 '''
 API dalam melakukan update informasi terbarukan vehicle
 '''
-@drone_api.route("/api/sse/state")
+@drone_api.route("/sse/state")
 def api_sse_location():
-    gens = APIService.gen()
+    gens = APIService.gen(APIService)
     return Response(gens, mimetype="text/event-stream")
 
 '''
 API untuk melakukan transfer data dari front-end ke back-end
 '''
-@drone_api.route("/api/update_data", methods=['POST','PUT'])
+@drone_api.route("/update_data", methods=['POST','PUT'])
 def update_data():
     if request.method == 'POST' or request.method == 'PUT':
         try:
@@ -114,7 +114,7 @@ def update_data():
 '''
 API untuk melakukan transfer data dari back-end ke front-end
 '''
-@drone_api.route("/api/get_data", methods=['POST','PUT'])
+@drone_api.route("/get_data", methods=['POST','PUT'])
 def get_data():
     if request.method == 'POST' or request.method == 'PUT':
         try:
@@ -146,7 +146,7 @@ def get_data():
 '''
 API Import mission from given file path
 '''
-@drone_api.route("/api/import_mission", methods=['POST','PUT'])
+@drone_api.route("/import_mission", methods=['POST','PUT'])
 def import_mission():
     if request.method =='POST' or request.method == 'PUT':
         try:
@@ -168,7 +168,7 @@ def import_mission():
 '''
 API Upload mission to vehicle
 '''
-@drone_api.route("/api/upload_mission", methods=['POST','PUT'])
+@drone_api.route("/upload_mission", methods=['POST','PUT'])
 def upload_mission():
     if request.method =='POST' or request.method == 'PUT':
         try:
@@ -186,7 +186,7 @@ def upload_mission():
 '''
 API dalam melakukan arming secara otomatis
 '''
-@drone_api.route("/api/arm", methods=['POST', 'PUT'])
+@drone_api.route("/arm", methods=['POST', 'PUT'])
 def api_location():
     if request.method =='POST' or request.method == 'PUT':
         try:
@@ -202,7 +202,7 @@ def api_location():
 '''
 API untuk terbang secara urut
 '''
-@drone_api.route("/api/start_seq_mission", methods=['POST','PUT'])
+@drone_api.route("/start_seq_mission", methods=['POST','PUT'])
 def start_seq_mission():
     sequenced_mission = []
     temp_mission = []
@@ -242,7 +242,7 @@ def start_seq_mission():
 '''
 API untuk batalkan terbang secara urut
 '''
-@drone_api.route("/api/abort_seq_mission", methods=['POST','PUT'])
+@drone_api.route("/abort_seq_mission", methods=['POST','PUT'])
 def abort_seq_mission():
     SEQ_MISSION_RUNNING = False
     return "success"
@@ -250,7 +250,7 @@ def abort_seq_mission():
 '''
 API untuk mengubah mode vehicle
 '''
-@drone_api.route("/api/mode", methods=['POST', 'PUT'])
+@drone_api.route("/mode", methods=['POST', 'PUT'])
 def api_mode():
     if request.method == 'POST' or request.method == 'PUT':
         try:
@@ -265,7 +265,7 @@ def api_mode():
 '''
 API untuk menggerakan vehicle ke titik yang diinginkan
 '''
-@drone_api.route("/api/goto", methods=['POST', 'PUT'])
+@drone_api.route("/goto", methods=['POST', 'PUT'])
 def api_goto():
     if request.method == 'POST' or request.method == 'PUT':
         try:
