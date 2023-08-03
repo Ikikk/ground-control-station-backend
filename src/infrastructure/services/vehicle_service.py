@@ -13,7 +13,7 @@ SEQ_MISSION_RUNNING = True
 global mission_num
 
 class VehicleService:
-    def arm_and_takeoff(self, id, aTargetAltitude):
+    def arm_and_takeoff(self, id, aTargetAltitude, mission_num):
         # Your code here to get the drone state based on the given ID
         
         print("V", id, " :: Basic pre-arm checks")
@@ -98,12 +98,21 @@ class VehicleService:
         command = miss.get('cmd')
         alt = float(miss.get('alt'))
 
-        vehicles.get(vehicle_id).airspeed = 1
-        vehicles.get(vehicle_id).groundspeed = 1
-        point = LocationGlobalRelative(dest_lat, dest_lon, alt)
-        vehicles.get(vehicle_id).simple_goto(point)
+        # vehicles.get(vehicle_id).airspeed = 1
+        # vehicles.get(vehicle_id).groundspeed = 1
+        # point = LocationGlobalRelative(dest_lat, dest_lon, alt)
+        # vehicles.get(vehicle_id).simple_goto(point)
+        vehicle = vehicles.get(vehicle_id)
+        if vehicle is None:
+            print(f"Vehicle with ID {vehicle_id} is not available or not connected.")
+        else:
+            # Lanjutkan dengan penggunaan objek vehicle seperti biasa
+            vehicle.airspeed = 1
+            vehicle.groundspeed = 1
+            point = LocationGlobalRelative(dest_lat, dest_lon, alt)
+            vehicle.simple_goto(point)
 
-        while VehicleService.distance_to_destination(vehicle_id, (dest_lat, dest_lon)) > 0.001:
+        while VehicleService.distance_to_destination(VehicleService, vehicle_id, (dest_lat, dest_lon)) > 0.001:
             # LOG
             now = datetime.now()
             CURRENT_TIME = now.strftime("%d-%m-%Y %H:%M:%S")
@@ -137,7 +146,12 @@ class VehicleService:
 
     def land(self, vehicle_id, mission_num):
         # Your code here to disconnect from the drone with the given ID
-        vehicles.get(vehicle_id).mode = VehicleMode("LAND")
+        vehicle = vehicles.get(vehicle_id)
+
+        if vehicle is None:
+            print(f"Vehicle with ID {vehicle_id} is not available or not connected.")
+        else:
+            vehicles.get(vehicle_id).mode = VehicleMode("LAND")
 
         # WAIT UNTIL VEHILCE IS NOT ARMED
         while True:
@@ -223,17 +237,17 @@ class VehicleService:
                 print(" Mission", counter ,"Runned by Vehicle ::", vehicle_id)
                 if command == 'TAKEOFF':
                     print(" TAKE OFF")
-                    func_in_thread.append(Thread( target=VehicleService.arm_and_takeoff, args=(vehicle_id, alt, counter)))
+                    func_in_thread.append(Thread( target=VehicleService.arm_and_takeoff, args=(VehicleService, vehicle_id, alt, counter)))
 
                 elif command == 'WAYPOINT':
                     print(" Going to :", mission)
-                    func_in_thread.append(Thread( target=VehicleService.goto, args=(miss, counter)))
+                    func_in_thread.append(Thread( target=VehicleService.goto, args=(VehicleService, miss, counter)))
                 elif command == 'DELAY':
                     print(" SLEEP 5 Seconds")
                     time.sleep(5)
                 elif command == 'LAND':
                     print(" LANDING")
-                    func_in_thread.append(Thread( target=VehicleService.land, args=(vehicle_id, counter)))
+                    func_in_thread.append(Thread( target=VehicleService.land, args=(VehicleService, vehicle_id, counter)))
 
             # Start T1hread
             for thrd in func_in_thread:
@@ -304,7 +318,7 @@ class VehicleService:
         """
         Upload a mission from a file. 
         """  
-        missionlist = VehicleService.readmission_file(aFileName, id)
+        missionlist = VehicleService.readmission_file(VehicleService, aFileName, id)
         
         print("\nUpload mission from a file: %s" % aFileName)
         #Clear existing mission from vehicle
@@ -322,7 +336,7 @@ class VehicleService:
         Upload a mission from a text mission. 
         """
         #Read mission from file
-        missionlist = VehicleService.readmission_text(mission_text, id)
+        missionlist = VehicleService.readmission_text(VehicleService, mission_text, id)
         
         print("\nUpload mission from a text:\n%s" % mission_text)
         #Clear existing mission from vehicle

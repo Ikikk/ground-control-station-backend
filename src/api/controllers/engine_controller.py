@@ -14,11 +14,11 @@ API dalam melakukan koneksi ke vehicle
 '''
 @drone_api.route("/connect", methods=['POST','PUT'])
 def api_connect():
-    if request.method == 'POST' or request.method == 'PUT':
+    if request.method =='POST' or request.method == 'PUT':
         try:
             addr = request.json['addr']
             baudrate = request.json['baudrate']
-            _id = int(request.json['id'])
+            id = int(request.json['id'])
             print('connecting to drone...')
             nvehicle = None
             try:
@@ -26,14 +26,13 @@ def api_connect():
                 timeout = lama waktu menunggu vehicle terkoneksi
                 heartbeat_timeout = waktu yang dibutuhkan untuk terkoneksi kembali jika lost connection
                 '''
-
                 nvehicle = connect(str(addr), wait_ready=True, timeout=120, heartbeat_timeout=90, baud=int(baudrate))
-                nvehicle.id = _id
-                vehicles[_id] = nvehicle
+                nvehicle.id = id
+                vehicles[id] = nvehicle
                 # vehicles.append(nvehicle)
-                print(vehicles.get(_id).airspeed)
-                vehicles.get(_id).parameters['ARMING_CHECK'] = 0
-                vehicles.get(_id).flush()
+                print(vehicles.get(id).airspeed)
+                vehicles.get(id).parameters['ARMING_CHECK'] = 0
+                vehicles.get(id).flush()
                 print("Vehicle Connected")
             except Exception as e:
                 nvehicle.close()
@@ -43,7 +42,7 @@ def api_connect():
             else:
                 nlon = vehicles.get(id).location.global_relative_frame.lon
                 nlat = vehicles.get(id).location.global_relative_frame.lat
-                return jsonify(error=0, msg="Connection success", lon=nlon, lat=nlat)
+                return jsonify(error=0,msg="Connection success",lon=nlon,lat=nlat)
         except Exception as e:
             print(e)
             return jsonify(error=1,msg="Failed to Connect to Vehicle")
@@ -55,10 +54,10 @@ API dalam memutuskan koneksi vehicle
 def api_disconnect():
     if request.method =='POST' or request.method == 'PUT':
         try:
-            _id = int(request.json['id'])
-            if _id in vehicles:
-                vehicles.get(_id).close()
-                vehicles.pop(_id)
+            id = int(request.json['id'])
+            if id in vehicles:
+                vehicles.get(id).close()
+                vehicles.pop(id)
             return "success"
         except Exception as e:
             print(e)
@@ -190,10 +189,10 @@ API dalam melakukan arming secara otomatis
 def api_location():
     if request.method =='POST' or request.method == 'PUT':
         try:
-            _id = int(request.json['id'])
-            VehicleService.arm_and_takeoff(_id, int(request.json['alt']))
+            id = int(request.json['id'])
+            VehicleService.arm_and_takeoff(id, int(request.json['alt']))
             vehicles.get(id).armed = True
-            vehicles.get(_id).flush()
+            vehicles.get(id).flush()
             return jsonify(ok=True)
         except Exception as e:
             print(e)
@@ -236,7 +235,7 @@ def start_seq_mission():
             sequenced_mission.append(data_append)
             data_append = []
         
-        VehicleService.do_mission(sequenced_mission)
+        VehicleService.do_mission(VehicleService, sequenced_mission)
         return "success"
 
 '''
@@ -254,9 +253,9 @@ API untuk mengubah mode vehicle
 def api_mode():
     if request.method == 'POST' or request.method == 'PUT':
         try:
-            _id = int(request.json['id'])
+            id = int(request.json['id'])
             vehicles.get(id).mode = VehicleMode(request.json['mode'].upper())
-            vehicles.get(_id).flush()
+            vehicles.get(id).flush()
             return jsonify(ok=True)
         except Exception as e:
             print(e)
@@ -269,18 +268,18 @@ API untuk menggerakan vehicle ke titik yang diinginkan
 def api_goto():
     if request.method == 'POST' or request.method == 'PUT':
         try:
-            _id = int(request.json['id'])
+            id = int(request.json['id'])
             waypoints = request.json['waypoints']
             print("Set default/target airspeed to 3")
             vehicles.get(id).airspeed = 3
             for xy in waypoints:
                 print("Going to : lat ", xy[1], " long : ", xy[0])
                 waypoint = LocationGlobalRelative(float(xy[1]), float(xy[0]), 20)
-                vehicles.get(_id).simple_goto(waypoint)
+                vehicles.get(id).simple_goto(waypoint)
                 time.sleep(30)
 
             vehicles.get(id).mode = VehicleMode(request.json['mode'].upper())
-            vehicles.get(_id).flush()
+            vehicles.get(id).flush()
             return "ok"
         except Exception as e:
             print(e)
