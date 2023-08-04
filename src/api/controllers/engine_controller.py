@@ -12,7 +12,7 @@ drone_api = Blueprint('engine_controller', __name__)
 '''
 API dalam melakukan koneksi ke vehicle
 '''
-@drone_api.route("/connect", methods=['POST', 'PUT'])
+@drone_api.route("/connect", methods=['POST',  'PUT'])
 def api_connect():
     if request.method =='POST' or request.method == 'PUT':
         try:
@@ -26,6 +26,7 @@ def api_connect():
                 timeout = lama waktu menunggu vehicle terkoneksi
                 heartbeat_timeout = waktu yang dibutuhkan untuk terkoneksi kembali jika lost connection
                 '''
+
                 nvehicle = connect(str(addr), wait_ready=True, timeout=120, heartbeat_timeout=90, baud=int(baudrate))
                 nvehicle.id = id
                 vehicles[id] = nvehicle
@@ -37,17 +38,18 @@ def api_connect():
             except Exception as e:
                 nvehicle.close()
                 print('waiting for connection... (%s)' % str(e))
-                return jsonify(error=1, msg="Failed to Connect to Vehicle")
-
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:
                 nlon = vehicles.get(id).location.global_relative_frame.lon
                 nlat = vehicles.get(id).location.global_relative_frame.lat
-                return jsonify(error=0,msg="Connection success",lon=nlon,lat=nlat)
+                return jsonify(error=0, msg="Connection success", lon=nlon, lat=nlat)
         except Exception as e:
             print(e)
-            return jsonify(error=1,msg="Failed to Connect to Vehicle")
+            return jsonify(error=1, msg="Failed to Connect to Vehicle")
+
+    # Handle invalid request method
+    return jsonify(error=1, msg="Invalid request method")
 
 '''
 API dalam memutuskan koneksi vehicle
@@ -55,15 +57,19 @@ API dalam memutuskan koneksi vehicle
 @drone_api.route("/disconnect", methods=['POST','PUT'])
 def api_disconnect():
     if request.method =='POST' or request.method == 'PUT':
-            try:
-                id = int(request.json['id'])
-                if id in vehicles:
-                    vehicles.get(id).close()
-                    vehicles.pop(id)
-                return "success"
-            except Exception as e:
-                print(e)
-                return "failed"
+        try:
+            id = int(request.json['id'])
+            print(vehicles)
+            print(id)
+            if id in vehicles:
+                vehicles.get(id).close()
+                vehicles.pop(id)
+                print("Vehicle Disconnected")
+            else : print("No vehicle with id %d" % id)
+            return "success"
+        except Exception as e:
+            print(e)
+            return "failed"
 
 '''
 API dalam melakukan update informasi terbarukan vehicle
@@ -157,8 +163,6 @@ def get_data():
 '''
 API Import mission from given file path
 '''
-from flask import request, jsonify
-
 @drone_api.route("/import_mission", methods=['POST','PUT'])
 def import_mission():
     if request.method =='POST' or request.method == 'PUT':
@@ -206,7 +210,7 @@ def api_location():
     if request.method == 'POST' or request.method == 'PUT':
         try:
             id = int(request.json['id'])
-            arm_and_takeoff(id, int(request.json['alt']))
+            arm_and_takeoff(int(request.json['alt'], id))
             vehicles.get(id).armed = True
             vehicles.get(id).flush()
             return jsonify(ok=True)
