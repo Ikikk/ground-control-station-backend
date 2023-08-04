@@ -8,8 +8,6 @@ def create_app(config):
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app = setup_blueprints(app)
-
-    CORS(app, origins="http://127.0.0.1:5000", allow_headers=["Content-Type"])
-
+    CORS(app, origins="http://localhost:3000", allow_headers=["Content-Type"])
 
     return app
