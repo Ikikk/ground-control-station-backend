@@ -3,6 +3,7 @@
 from datetime import datetime
 import json
 from queue import Queue
+from flask import request
 import time
 import mpu
 from src.domain.constants import vehicles, listeners_location, SEQ_MISSION_RUNNING, START_MISSION_TIME
@@ -31,31 +32,50 @@ t = Thread(target=tcount)
 t.daemon = True
 t.start()
 
+def get_lat():
+    lat = None
+    if request.method == 'POST' or request.method == 'PUT':
+        try:
+            lat = request.json['lat']
+        except Exception as e:
+            print("[Controller] Line 43: exception in get_lat_lon ", e)
+    return lat
+
+def get_lon():
+    lon = None
+    if request.method == 'POST' or request.method == 'PUT':
+        try:
+            lon = request.json['lon']
+        except Exception as e:
+            print("[Controller] Line 43: exception in get_lat_lon ", e)
+    return lon
+
 def arm_and_takeoff(id, aTargetAltitude, mission_num):
     # Your code here to get the drone state based on the given ID
         
-    print("V", id, " :: Basic pre-arm checks")
+    print("[Service] Line 37 : V ", id, " :: Basic pre-arm checks")
     # Don't try to arm until autopilot is ready
     while not vehicles.get(id).is_armable:
-        print("V", id, " :: Waiting for vehicle to initialise...")
+        print("[Service] Line 40 : V ", id, " :: Waiting for vehicle to initialise...")
         time.sleep(1)
         
-    print("V", id, " :: Arming motors")
+    print("[Service] Line 43 : V ", id, " :: Arming motors")
     # Copter should arm in GUIDED mode
-    print("\nSet Vehicle.mode = GUIDED (currently: %s)" % vehicles.get(id).mode.name) 
+    print("\n[Service] Line 45 : Set Vehicle.mode = GUIDED (currently: %s)" % vehicles.get(id).mode.name) 
     vehicles.get(id).mode = VehicleMode("GUIDED")
+    
     while not vehicles.get(id).mode.name =='GUIDED':  #Wait until mode has changed
-        print(" Waiting for mode change ...")
+        print(" [Service] Line 49 : Waiting for mode change ...")
         time.sleep(1)
         
     vehicles.get(id).armed = True
 
     # Confirm vehicle armed before attempting to take off
     while not vehicles.get(id).armed:
-        print("V", id, " :: Waiting for arming...")
+        print("[Service] Line 56 : V ", id, " :: Waiting for arming...")
         time.sleep(1)
 
-    print("V", id, " :: Taking off!")
+    print("[Service] Line 59 : V ", id, " :: Taking off!")
     vehicles.get(id).simple_takeoff(aTargetAltitude)  # Take off to target altitude
 
     # Wait until the vehicle reaches a safe height before processing the goto
@@ -83,18 +103,18 @@ def arm_and_takeoff(id, aTargetAltitude, mission_num):
 
         f.close()
         
-        print("V", id, " :: Altitude: ", vehicles.get(id).location.global_relative_frame.alt)
+        print("[Service] Line 87 : V ", id, " :: Altitude: ", vehicles.get(id).location.global_relative_frame.alt)
         # Break and return from function just below target altitude.
         if vehicles.get(id).location.global_relative_frame.alt >= aTargetAltitude * 0.95:
-            print("V", id, " :: Reached target altitude")
+            print("[Service] Line 90 : V ", id, " :: Reached target altitude")
             break
 
         # FAILSAFE JIKA BARONYA TIBA2 minus lebih dari 4
         if vehicles.get(id).location.global_relative_frame.alt <= -4:
             SEQ_MISSION_RUNNING == False
             vehicles.get(id).mode = VehicleMode("LAND")
-            print("::: ABORTED :::")
-            print("Vehicle Mode", vehicles.get(id).mode)
+            print("[Service] Line 97 : ::: ABORTED :::")
+            print("[Service] Line 98 : Vehicle Mode ", vehicles.get(id).mode)
             return "ABORT SUCCESS"
             
         time.sleep(0.5)
@@ -104,7 +124,7 @@ def distance_to_destination(id, coord2):
     lat = vehicles.get(id).location.global_relative_frame.lat
     coord1 = (lat, lon)
     dist = mpu.haversine_distance(coord1, coord2)
-    print(dist)
+    print("[Service] Line 108 : haversine_distance for nextion ", dist)
     return dist
 
 def goto(miss, mission_num):
@@ -146,12 +166,12 @@ def goto(miss, mission_num):
 
         if SEQ_MISSION_RUNNING == False:
             vehicles.get(vehicle_id).mode = VehicleMode("LAND")
-            print("::: ABORTED :::")
-            print("Vehicle Mode", vehicles.get(vehicle_id).mode)
+            print("[Service] Line 150 : ::: ABORTED :::")
+            print("[Service] Line 151 : Vehicle Mode ", vehicles.get(vehicle_id).mode)
             return "ABORT SUCCESS"
 
-        print(" Waiting vehicle", vehicle_id, "to waypoint", mission_num-1)
-        print("Vehicle Mode", vehicles.get(vehicle_id).mode)
+        print(" [Service] Line 154 : Waiting vehicle ", vehicle_id, "to waypoint", mission_num-1)
+        print("[Service] Line 155 : Vehicle Mode ", vehicles.get(vehicle_id).mode)
         time.sleep(0.5)
 
 def land(vehicle_id, mission_num):
@@ -161,7 +181,7 @@ def land(vehicle_id, mission_num):
 
     # WAIT UNTIL VEHILCE IS NOT ARMED
     while True:
-        print(" Waiting vehicle", vehicle_id, "landed")
+        print(" [Service] Line 165 : Waiting vehicle ", vehicle_id, "landed")
         # LOG
         now = datetime.now()
         CURRENT_TIME = now.strftime("%d-%m-%Y %H:%M:%S")
@@ -240,23 +260,23 @@ def do_mission(missions):
             # ABORT MISSION TRIGERRED
             if SEQ_MISSION_RUNNING == False:
                 vehicles.get(vehicle_id).mode = VehicleMode("LAND")
-                print("::: ABORTED :::")
-                print("Vehicle Mode", vehicles.get(vehicle_id).mode)
+                print("[Service] Line 244 : ::: ABORTED :::")
+                print("[Service] Line 245 : Vehicle Mode ", vehicles.get(vehicle_id).mode)
                 return "ABORT SUCCESS"
 
-            print(" Mission", counter ,"Runned by Vehicle ::", vehicle_id)
+            print(" [Service] Line 248 : Mission ", counter ,"Runned by Vehicle ::", vehicle_id)
             if command == 'TAKEOFF':
-                print(" TAKE OFF")
+                print(" [Service] Line 250 : TAKE OFF ")
                 func_in_thread.append(Thread( target=arm_and_takeoff, args=(vehicle_id, alt, counter)))
 
             elif command == 'WAYPOINT':
-                print(" Going to :", mission)
+                print(" [Service] Line 254 : Going to : ", mission)
                 func_in_thread.append(Thread( target=goto, args=(miss, counter)))
             elif command == 'DELAY':
-                print(" SLEEP 5 Seconds")
+                print(" [Service] Line 257 : SLEEP 5 Seconds ")
                 time.sleep(5)
             elif command == 'LAND':
-                print(" LANDING")
+                print(" [Service] Line 260 : LANDING ")
                 func_in_thread.append(Thread( target=land, args=(vehicle_id, counter)))
 
         # Start T1hread
@@ -307,8 +327,8 @@ def readmission_text(mission_text, id):
     data = mission_text.split("\n")
     i=0
     for line in data:
-        print("line :")
-        print(line)
+        print("[Service] Line 311 : line :")
+        print("[Service] Line 312 : line ", line)
         if i!=0 and len(line)>0:
             linearray=line.split('\t')
             ln_index=int(linearray[0])
@@ -336,15 +356,15 @@ def upload_mission_file(aFileName, id):
     #Read mission from file
     missionlist = readmission_file(aFileName, id)
     
-    print("\nUpload mission from a file: %s" % aFileName)
+    print("\n[Service] Line 340 : Upload mission from a file: %s" % aFileName)
     #Clear existing mission from vehicle
-    print(' Clear mission')
+    print(' [Service] Line 342 : Clear mission')
     cmds = vehicles.get(id).commands
     cmds.clear()
     #Add new mission to vehicle
     for command in missionlist:
         cmds.add(command)
-    print(' Upload mission')
+    print(' [Service] Line 348 : Upload mission')
     vehicles.get(id).commands.upload()
 
 def upload_mission_text(mission_text, id):
@@ -356,15 +376,15 @@ def upload_mission_text(mission_text, id):
     missionlist = []
     readmission_text(mission_text, id)
     
-    print("\nUpload mission from a text:\n%s" % mission_text)
+    print("\n[Service] Line 360 : Upload mission from a text:\n%s" % mission_text)
     #Clear existing mission from vehicle
-    print(' Clear mission')
+    print(' [Service] Line 362 : Clear mission')
     cmds = vehicles.get(id).commands
     cmds.clear()
     #Add new mission to vehicle
     for command in missionlist:
         cmds.add(command)
-    print(' Upload mission')
+    print(' [Service] Line 368 : Upload mission')
     vehicles.get(id).commands.upload()
 
 
