@@ -1,4 +1,5 @@
 from .engine_controller import drone_api as engine_controller_blueprint
+from .engine_controller import start_seq_mission
 from .page_controller import rest_api as page_controller_blueprint
 
 
@@ -8,4 +9,4 @@ def setup_blueprints(app) -> None:
     return app
 
 
-__all__ = ['setup_blueprints']
+__all__ = ['setup_blueprints', 'start_seq_mission']

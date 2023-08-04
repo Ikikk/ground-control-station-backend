@@ -1,7 +1,7 @@
 # src/api/controllers/engine_controller.py
 import time
 from flask import Blueprint, jsonify, Response, request
-from src.infrastructure.services import arm_and_takeoff, do_mission, upload_mission_text,gen
+from src.infrastructure.services import arm_and_takeoff, do_mission, upload_mission_text, gen, get_lat, get_lon
 from src.domain.constants import vehicles, vehicle_dataList, homepoint_list, waypoint_list, mission_all, mission_list
 from src.domain.exceptions import sse_encode, state_msg
 from src.infrastructure.services.socket import my_socket_bind, str2bool
@@ -19,25 +19,24 @@ def api_connect():
             addr = request.json['addr']
             baudrate = request.json['baudrate']
             id = int(request.json['id'])
-            print('connecting to drone...')
+            print('[Controller] Line 22 : connecting to drone...')
             nvehicle = None
             try:
                 '''
                 timeout = lama waktu menunggu vehicle terkoneksi
                 heartbeat_timeout = waktu yang dibutuhkan untuk terkoneksi kembali jika lost connection
                 '''
-
                 nvehicle = connect(str(addr), wait_ready=True, timeout=120, heartbeat_timeout=90, baud=int(baudrate))
                 nvehicle.id = id
                 vehicles[id] = nvehicle
                 # vehicles.append(nvehicle)
-                print(vehicles.get(id).airspeed)
+                print("[Controller] Line 34 : airspeed ", vehicles.get(id).airspeed)
                 vehicles.get(id).parameters['ARMING_CHECK'] = 0
                 vehicles.get(id).flush()
-                print("Vehicle Connected")
+                print("[Controller] Line 37 :Vehicle Connected")
             except Exception as e:
                 nvehicle.close()
-                print('waiting for connection... (%s)' % str(e))
+                print('[Controller] Line 40 :waiting for connection... (%s)' % str(e))
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:
@@ -45,7 +44,7 @@ def api_connect():
                 nlat = vehicles.get(id).location.global_relative_frame.lat
                 return jsonify(error=0, msg="Connection success", lon=nlon, lat=nlat)
         except Exception as e:
-            print(e)
+            print("[Controller] Line 48 : Exception in api_connect ", e)
             return jsonify(error=1, msg="Failed to Connect to Vehicle")
 
     # Handle invalid request method
@@ -59,16 +58,16 @@ def api_disconnect():
     if request.method =='POST' or request.method == 'PUT':
         try:
             id = int(request.json['id'])
-            print(vehicles)
-            print(id)
+            print("[Controller] Line 62 : vehicles ", vehicles)
+            print("[Controller] Line 63 : id ", id)
             if id in vehicles:
                 vehicles.get(id).close()
                 vehicles.pop(id)
-                print("Vehicle Disconnected")
-            else : print("No vehicle with id %d" % id)
+                print("[Controller] Line 67 : Vehicle Disconnected")
+            else : print("[Controller] Line 68 : No vehicle with id %d" % id)
             return "success"
         except Exception as e:
-            print(e)
+            print("[Controller] Line 71 : exception in api_disconnect ", e)
             return "failed"
 
 '''
@@ -92,35 +91,36 @@ def update_data():
     if request.method =='POST' or request.method == 'PUT':
         try:
             data_type = request.json['type']
+
             data = request.json['data']
             if data_type == "vehicle_dataList":
                 vehicle_dataList = []
                 for value in data:
                     vehicle_dataList.append(value)
-                print(vehicle_dataList)
+                print("[Controller] Line 100 : vehicle_datalist ", vehicle_dataList)
             elif data_type == "homepoint_list":
                 homepoint_list = []
                 for value in data:
                     homepoint_list.append(value)
-                print(homepoint_list)
+                print("[Controller] Line 105 : homepoint_list ", homepoint_list)
             elif data_type == "waypoint_list":
                 waypoint_list = []
                 for value in data:
                     waypoint_list.append(value)
-                print(waypoint_list)
+                print("[Controller] Line 110 : waypoint_list ", waypoint_list)
             elif data_type == "mission_list":
                 mission_list = []
                 for value in data:
                     mission_list.append(value)
-                print(mission_list)
+                print("[Controller] Line 115 : mission_list ", mission_list)
             elif data_type == "mission_all":
                 mission_all = []
                 for value in data:
                     mission_all.append(value)
-                print(mission_all)
+                print("[Controller] Line 120 : mission_all ", mission_all)
             return "success"
         except Exception as e:
-            print(e)
+            print("[Controller] Line 123 : Exception in update_data ", e)
             return "failed"
 
 '''
@@ -137,27 +137,27 @@ def get_data():
         try:
             data_request = request.json['request']
             if data_request == "vehicle_dataList":
-                print("vehicle_dataList:")
-                print(vehicle_dataList)
+                print("[Controller] Line 140 : vehicle_dataList:")
+                print("[Controller] Line 141: vehicle_datalist ", vehicle_dataList)
                 return jsonify(error=0, data=vehicle_dataList)
             elif data_request == "homepoint_list":
-                print("homepoint_list:")
-                print(homepoint_list)
+                print("[Controller] Line 144 : homepoint_list:")
+                print("[Controller] Line 145 : homepoint_list ", homepoint_list)
                 return jsonify(error=0, data=homepoint_list)
             elif data_request == "waypoint_list":
-                print("waypoint_list:")
-                print(waypoint_list)
+                print("[Controller] Line 148 : waypoint_list:")
+                print("[Controller] Line 149 : waypoint_list ", waypoint_list)
                 return jsonify(error=0, data=waypoint_list)
             elif data_request == "mission_list":
-                print("mission_list:")
-                print(mission_list)
+                print("[Controller] Line 152 : mission_list:")
+                print("[Controller] Line 153 : mission_list ", mission_list)
                 return jsonify(error=0, data=mission_list)
             elif data_request == "mission_all":
-                print("mission_all:")
-                print(mission_all)
+                print("[Controller] Line 156 : mission_all:")
+                print("[Controller] Line 157 : mission_all ", mission_all)
                 return jsonify(error=0, data=mission_all)
         except Exception as e:
-            print(e)
+            print("[Controller] Line 160 : exception in get_data ", e)
             return "failed"
 
 '''
@@ -174,7 +174,7 @@ def import_mission():
 
             return jsonify(wp=wp_list)
         except Exception as e:
-            print(e)
+            print("[Controller] Line 177 : exception in import_mission ", e)
             return "failed"
 
 
@@ -189,12 +189,12 @@ def upload_mission():
             vehicle_id = request.json['id']
             mission_text = request.json['mission_text']
             
-            print("mission_text:")
-            print(mission_text)
+            print("[Controller] Line 192 : mission_text:")
+            print("[Controller] Line 193 : mission_text ", mission_text)
             upload_mission_text(mission_text, vehicle_id)
             return "Upload success"
         except Exception as e:
-            print(e)
+            print("[Controller] Line 197 : exception in upload_mission ", e)
             return "failed"
 
 '''
@@ -210,7 +210,7 @@ def api_location():
             vehicles.get(id).flush()
             return jsonify(ok=True)
         except Exception as e:
-            print(e)
+            print("[Controller] Line 213 : exception in api_location ", e)
             return jsonify(ok=False)
 
 '''
@@ -219,11 +219,18 @@ API untuk terbang secara urut
 @drone_api.route("/start_seq_mission", methods=['POST','PUT'])
 def start_seq_mission():
     global sequenced_mission
+    # global lat
+    # global lon
     sequenced_mission = []
     temp_mission = []
     if request.method == 'POST' or request.method == 'PUT':
         try:
             data = request.json['data']
+            # lat = request.json['lat']
+            # lon = request.json['lon']
+            get_lat()
+            get_lon()
+            # get_lon(lon)
             for item in data:
                 item_formated = {
                     'id':int(item['vehicle_id']),
@@ -236,7 +243,7 @@ def start_seq_mission():
                 }
                 temp_mission.append(item_formated)
         except Exception as e:
-            print(e)
+            print("[Controller] Line 239 : exception in start_mission ", e)
         
         # Then format the mission
         data_append = []
@@ -275,7 +282,7 @@ def api_mode():
             vehicles.get(id).flush()
             return jsonify(ok=True)
         except Exception as e:
-            print(e)
+            print("[Controller] Line 278 : exception in api_mode ", e)
             return jsonify(ok=False)
 
 '''
@@ -287,10 +294,10 @@ def api_goto():
         try:
             id = int(request.json['id'])
             waypoints=request.json['waypoints']
-            print("Set default/target airspeed to 3")
+            print("[Controller] Line 290 : Set default/target airspeed to 3")
             vehicles.get(id).airspeed = 3
             for xy in waypoints:
-                print("Going to : lat ", xy[1] , " long : " , xy[0])
+                print("[Controller] Line 293 : Going to : lat ", xy[1] , " long : " , xy[0])
                 waypoint = LocationGlobalRelative(float(xy[1]), float(xy[0]), 20)
                 vehicles.get(id).simple_goto(waypoint)
                 time.sleep(30)
@@ -299,6 +306,6 @@ def api_goto():
             vehicles.get(id).flush()
             return "ok"
         except Exception as e:
-            print(e)
+            print("[Controller] Line 302 : exception in api_goto ", e)
             return "failed"
 

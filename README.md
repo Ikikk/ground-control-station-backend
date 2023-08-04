@@ -56,12 +56,3 @@ Versi Python dibawah 3.10, kalo 3.10 keatas harus modif ```__init__.py```
     ```
     python engine.py
     ```
-
-
-    
-2. 
-
-Run
-    ```bash
-    python <filename>
-    ```cd Project
