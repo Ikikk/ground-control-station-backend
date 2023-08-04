@@ -163,20 +163,15 @@ def get_data():
 '''
 API Import mission from given file path
 '''
+
 @drone_api.route("/import_mission", methods=['POST','PUT'])
 def import_mission():
     if request.method =='POST' or request.method == 'PUT':
         try:
-            file_path = request.json['file_path']
-            wp_list = []
-            with open(file_path) as f:
-                for i, line in enumerate(f):
-                    if i>1:
-                        linearray=line.split('\t')
-                        lat=float(linearray[8])
-                        lon=float(linearray[9])
-                        wp_list.append([lon,lat])
-            wp_list.pop()
+            state_data = request.json['state']
+            waypoints = state_data['waypoints']
+            wp_list = [[waypoint['lon'], waypoint['lat']] for waypoint in waypoints]
+
             return jsonify(wp=wp_list)
         except Exception as e:
             print(e)
