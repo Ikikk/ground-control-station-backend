@@ -5,7 +5,7 @@ dronekit_sitl adalah library yang akan kita gunakan untuk melakukan simulasi tan
 di bawah ini sudah kami siapkan dua simulasi (sitl, sitl2)
 '''
 
-
+# homepoint = f'--home={latitude},{longitude},0,180'
 homepoint = "--home=-7.277704,112.797483,0,180"
 
 class VehicleConfig(object):

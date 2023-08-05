@@ -1,11 +1,14 @@
 # src/api/controllers/engine_controller.py
 import time
 from flask import Blueprint, jsonify, Response, request
-from src.infrastructure.services import arm_and_takeoff, do_mission, upload_mission_text, gen, get_lat, get_lon
+from src.infrastructure.services import arm_and_takeoff, do_mission, upload_mission_text, gen, str2bool
 from src.domain.constants import vehicles, vehicle_dataList, homepoint_list, waypoint_list, mission_all, mission_list
 from src.domain.exceptions import sse_encode, state_msg
-from src.infrastructure.services.socket import my_socket_bind, str2bool
+# from config.vehicle_config import VehicleConfig
 from dronekit import VehicleMode, LocationGlobalRelative, connect
+
+global latitude
+global longitude
 
 drone_api = Blueprint('engine_controller', __name__)
 
@@ -19,6 +22,14 @@ def api_connect():
             addr = request.json['addr']
             baudrate = request.json['baudrate']
             id = int(request.json['id'])
+            # latitude = request.json['lat']
+            # longitude = request.json['lon']
+
+            # home = f'--home={latitude},{longitude},0,180'
+
+            # VehicleConfig.sitl_args = ['-I0', '--model', 'quad', home]
+            # VehicleConfig.sitl_args2 = ['-I1', '--model', 'quad', home]
+
             print('[Controller] Line 22 : connecting to drone...')
             nvehicle = None
             try:
@@ -65,10 +76,10 @@ def api_disconnect():
                 vehicles.pop(id)
                 print("[Controller] Line 67 : Vehicle Disconnected")
             else : print("[Controller] Line 68 : No vehicle with id %d" % id)
-            return "success"
+            return jsonify(error=0, msg="Disconnect success")
         except Exception as e:
             print("[Controller] Line 71 : exception in api_disconnect ", e)
-            return "failed"
+            return jsonify(error=1, msg="Failed to Disconnect")
 
 '''
 API dalam melakukan update informasi terbarukan vehicle
@@ -228,8 +239,8 @@ def start_seq_mission():
             data = request.json['data']
             # lat = request.json['lat']
             # lon = request.json['lon']
-            get_lat()
-            get_lon()
+            # get_lat()
+            # get_lon()
             # get_lon(lon)
             for item in data:
                 item_formated = {

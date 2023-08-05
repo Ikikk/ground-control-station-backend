@@ -3,6 +3,7 @@ from src.create_app import create_app
 from config.vehicle_config import VehicleConfig
 
 app = create_app(VehicleConfig)
+
 # Never cache
 @app.after_request
 def never_cache(response):
