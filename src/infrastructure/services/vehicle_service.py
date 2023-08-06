@@ -32,23 +32,16 @@ t = Thread(target=tcount)
 t.daemon = True
 t.start()
 
-def get_lat():
+def get_lat_lon():
     lat = None
-    if request.method == 'POST' or request.method == 'PUT':
-        try:
-            lat = request.json['lat']
-        except Exception as e:
-            print("[Controller] Line 43: exception in get_lat_lon ", e)
-    return lat
-
-def get_lon():
     lon = None
     if request.method == 'POST' or request.method == 'PUT':
         try:
+            lat = request.json['lat']
             lon = request.json['lon']
         except Exception as e:
-            print("[Controller] Line 43: exception in get_lat_lon ", e)
-    return lon
+            print("[Controller] Line 239: exception in get_lat_lon ", e)
+    return lat, lon
 
 def arm_and_takeoff(id, aTargetAltitude, mission_num):
     # Your code here to get the drone state based on the given ID
@@ -86,7 +79,7 @@ def arm_and_takeoff(id, aTargetAltitude, mission_num):
         now = datetime.now()
         CURRENT_TIME = now.strftime("%d-%m-%Y %H:%M:%S")
 
-        f = open("{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
+        f = open("logs/{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
         f.write("{CURRENT_TIME}\t{RUNNING_MISSION}\t{VEHICLE}\t{ARMED}\t{MODE}\t{HEADING}\t{VSPEED}\t{GSPEED}\t{LON}\t{LAT}\t{ALT}\r\n".format(
             CURRENT_TIME=CURRENT_TIME,
             RUNNING_MISSION=mission_num,
@@ -147,7 +140,7 @@ def goto(miss, mission_num):
         now = datetime.now()
         CURRENT_TIME = now.strftime("%d-%m-%Y %H:%M:%S")
 
-        f = open("{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
+        f = open("logs/{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
         f.write("{CURRENT_TIME}\t{RUNNING_MISSION}\t{VEHICLE}\t{ARMED}\t{MODE}\t{HEADING}\t{VSPEED}\t{GSPEED}\t{LON}\t{LAT}\t{ALT}\r\n".format(
             CURRENT_TIME=CURRENT_TIME,
             RUNNING_MISSION=mission_num,
@@ -186,7 +179,7 @@ def land(vehicle_id, mission_num):
         now = datetime.now()
         CURRENT_TIME = now.strftime("%d-%m-%Y %H:%M:%S")
 
-        f = open("{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
+        f = open("logs/{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
         f.write("{CURRENT_TIME}\t{RUNNING_MISSION}\t{VEHICLE}\t{ARMED}\t{MODE}\t{HEADING}\t{VSPEED}\t{GSPEED}\t{LON}\t{LAT}\t{ALT}\r\n".format(
             CURRENT_TIME=CURRENT_TIME,
             RUNNING_MISSION=mission_num,
@@ -218,7 +211,7 @@ def do_mission(missions):
     now = datetime.now()
     counter = 0
     START_MISSION_TIME = now.strftime("%d-%m-%Y %H-%M-%S")
-    f = open("{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
+    f = open("logs/{TIME}.tsv".format(TIME=START_MISSION_TIME), "a")
     f.write("MISSION LIST\r\n")
     f.write("NUM\tCOMMAND\tVEHICLE\tLON\tLAT\tALT\tWAIT NEXT\r\n")
 

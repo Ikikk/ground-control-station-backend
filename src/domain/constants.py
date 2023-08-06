@@ -14,6 +14,3 @@ listeners_location = []
 
 SEQ_MISSION_RUNNING = False
 START_MISSION_TIME = ""
-
-global lat
-global lon
