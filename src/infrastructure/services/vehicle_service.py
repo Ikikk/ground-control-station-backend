@@ -130,8 +130,8 @@ def goto(miss, mission_num):
     command = miss.get('cmd')
     alt = float(miss.get('alt'))
 
-    vehicles.get(vehicle_id).airspeed = 1
-    vehicles.get(vehicle_id).groundspeed = 1
+    vehicles.get(vehicle_id).airspeed = 3
+    vehicles.get(vehicle_id).groundspeed = 3
     point = LocationGlobalRelative(dest_lat, dest_lon, alt)
     vehicles.get(vehicle_id).simple_goto(point)
 
