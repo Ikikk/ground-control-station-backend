@@ -15,8 +15,6 @@ def state_msg(id):
         raise Exception('no position info')
     if vehicles.get(id).armed == None:
         raise Exception('no armed info')
-    
-    wp_dist = distance_to_destination(id, (vehicles.get(id).location.global_relative_frame.lon, vehicles.get(id).location.global_relative_frame.lat))
 
     return {
         "id": vehicles.get(id).id,
@@ -36,5 +34,4 @@ def state_msg(id):
         "ekf": vehicles.get(id).ekf_ok,
         "lasthb": vehicles.get(id).last_heartbeat,
         "systat": vehicles.get(id).system_status.state,
-        "WPdist": wp_dist
     }
