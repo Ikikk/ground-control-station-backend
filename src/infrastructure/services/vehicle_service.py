@@ -32,17 +32,6 @@ t = Thread(target=tcount)
 t.daemon = True
 t.start()
 
-def get_lat_lon():
-    lat = None
-    lon = None
-    if request.method == 'POST' or request.method == 'PUT':
-        try:
-            lat = request.json['lat']
-            lon = request.json['lon']
-        except Exception as e:
-            print("[Controller] Line 239: exception in get_lat_lon ", e)
-    return lat, lon
-
 def arm_and_takeoff(id, aTargetAltitude, mission_num):
     # Your code here to get the drone state based on the given ID
         
