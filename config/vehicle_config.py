@@ -1,10 +1,12 @@
 import dronekit_sitl as sim
+from src.domain.constants import vehicles
 
 '''
 dronekit_sitl adalah library yang akan kita gunakan untuk melakukan simulasi tanpa memerlukan wahana
 di bawah ini sudah kami siapkan dua simulasi (sitl, sitl2)
 '''
 
+# home = vehicles.get(id).home_location
 # homepoint = f'--home={latitude},{longitude},0,180'
 homepoint = "--home=-7.277704,112.797483,0,180"
 
