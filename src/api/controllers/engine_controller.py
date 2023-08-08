@@ -48,6 +48,8 @@ def api_connect():
             except Exception as e:
                 nvehicle.close()
                 print('[Controller] Line 40 :waiting for connection... (%s)' % str(e))
+                return jsonify(error=1, msg="Failed to Connect to Vehicle")
+
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:

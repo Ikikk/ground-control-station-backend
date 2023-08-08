@@ -22,7 +22,6 @@ def state_msg(id):
         "id": vehicles.get(id).id,
         "armable": vehicles.get(id).is_armable,
         "armed": vehicles.get(id).armed,
-        "volt": vehicles.get(id).battery.volt,
         "alt": vehicles.get(id).location.global_relative_frame.alt,
         "mode": vehicles.get(id).mode.name,
         "heading": vehicles.get(id).heading or 0,
