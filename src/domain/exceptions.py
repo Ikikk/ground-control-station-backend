@@ -36,5 +36,9 @@ def state_msg(id):
         "ekf": vehicles.get(id).ekf_ok,
         "lasthb": vehicles.get(id).last_heartbeat,
         "systat": vehicles.get(id).system_status.state,
-        "home_dist": vehicles.get(id).location.local_frame.distance_home()
+        "home_dist": vehicles.get(id).location.local_frame.distance_home(),
+        "hdop": vehicles.get(id).gps_0.eph,
+        "vdop": vehicles.get(id).gps_0.epv,
+        "fix_type": vehicles.get(id).gps_0.fix_type,
+        "sats": vehicles.get(id).gps_0.satellites_visible
     }

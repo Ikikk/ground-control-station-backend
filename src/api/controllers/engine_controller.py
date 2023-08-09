@@ -131,10 +131,10 @@ def update_data():
                 for value in data:
                     mission_all.append(value)
                 print("[Controller] Line 120 : mission_all ", mission_all)
-            return "success"
+            return jsonify(error=0, msg="Update data success")
         except Exception as e:
             print("[Controller] Line 123 : Exception in update_data ", e)
-            return "failed"
+            return jsonify(error=1, msg="Failed to Disconnect")
 
 '''
 API untuk melakukan transfer data dari back-end ke front-end
@@ -272,7 +272,7 @@ def start_seq_mission():
             data_append = []
         
         do_mission(sequenced_mission)
-        return "success"
+        return jsonify(error=0, msg="do mission success")
 
 '''
 API untuk batalkan terbang secara urut
