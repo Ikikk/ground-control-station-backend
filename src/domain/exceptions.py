@@ -19,10 +19,10 @@ def state_msg(id):
     roll = vehicles.get(id).attitude.roll
 
     return {
-        "id": vehicles.get(id).id,
-        "armable": vehicles.get(id).is_armable,
-        "armed": vehicles.get(id).armed,
-        "alt": vehicles.get(id).location.global_relative_frame.alt,
+        "id": vehicles.get(id).id, #return id vehicle
+        "armable": vehicles.get(id).is_armable, #return boolean
+        "armed": vehicles.get(id).armed, #return boolean
+        "alt": vehicles.get(id).location.global_relative_frame.alt, #return 
         "mode": vehicles.get(id).mode.name,
         "heading": vehicles.get(id).heading or 0,
         "vspeed":vehicles.get(id).airspeed,
@@ -36,9 +36,9 @@ def state_msg(id):
         "ekf": vehicles.get(id).ekf_ok,
         "lasthb": vehicles.get(id).last_heartbeat,
         "systat": vehicles.get(id).system_status.state,
-        "home_dist": vehicles.get(id).location.local_frame.distance_home(),
-        "hdop": vehicles.get(id).gps_0.eph,
-        "vdop": vehicles.get(id).gps_0.epv,
-        "fix_type": vehicles.get(id).gps_0.fix_type,
-        "sats": vehicles.get(id).gps_0.satellites_visible
+        "home_dist": vehicles.get(id).location.local_frame.distance_home(), #meters
+        "hdop": vehicles.get(id).gps_0.eph, #horizontal dilution of position-hdop (int)
+        "vdop": vehicles.get(id).gps_0.epv, #vertical dilution of position-vdop (int)
+        "fix_type": vehicles.get(id).gps_0.fix_type, #0-1:no fix, 2: 2D fix, 3: 3D fix (int)
+        "sats": vehicles.get(id).gps_0.satellites_visible, #number of satellites visible (int)
     }

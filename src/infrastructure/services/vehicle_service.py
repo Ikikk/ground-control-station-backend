@@ -10,7 +10,7 @@ from src.domain.constants import vehicles, listeners_location, SEQ_MISSION_RUNNI
 from src.domain.exceptions import sse_encode, state_msg
 from dronekit import VehicleMode, LocationGlobalRelative, Command
 
-SEQ_MISSION_RUNNING = True
+SEQ_MISSION_RUNNING = False
 global mission_num
 
 '''
@@ -32,32 +32,45 @@ t = Thread(target=tcount)
 t.daemon = True
 t.start()
 
+def abort_mission():
+    global SEQ_MISSION_RUNNING
+    SEQ_MISSION_RUNNING = False
+    print("success aborted")
+    return "success"
+
 def arm_and_takeoff(id, aTargetAltitude, mission_num):
-    # Your code here to get the drone state based on the given ID
-        
-    print("[Service] Line 37 : V ", id, " :: Basic pre-arm checks")
+    global SEQ_MISSION_RUNNING
+    global vehicles
+    global START_MISSION_TIME
+
+    if(SEQ_MISSION_RUNNING == False):
+        vehicles.get(id).mode = VehicleMode("LAND")
+        print("::: ABORTED :::")
+        print("Vehicle Mode", vehicles.get(id).mode)
+        return "ABORT SUCCESS"
+
+    print("V", id, " :: Basic pre-arm checks")
     # Don't try to arm until autopilot is ready
     while not vehicles.get(id).is_armable:
-        print("[Service] Line 40 : V ", id, " :: Waiting for vehicle to initialise...")
+        print("V", id, " :: Waiting for vehicle to initialise...")
         time.sleep(1)
-        
-    print("[Service] Line 43 : V ", id, " :: Arming motors")
-    # Copter should arm in GUIDED mode
-    print("\n[Service] Line 45 : Set Vehicle.mode = GUIDED (currently: %s)" % vehicles.get(id).mode.name) 
-    vehicles.get(id).mode = VehicleMode("GUIDED")
     
-    while not vehicles.get(id).mode.name =='GUIDED':  #Wait until mode has changed
-        print(" [Service] Line 49 : Waiting for mode change ...")
+    print("V", id, " :: Arming motors")
+    # Copter should arm in GUIDED mode
+    print("\nSet Vehicle.mode = GUIDED (currently: %s)" % vehicles.get(id).mode.name) 
+    vehicles.get(id).mode = VehicleMode("GUIDED")
+    while not vehicles.get(id).mode.name=='GUIDED':  #Wait until mode has changed
+        print(" Waiting for mode change ...")
         time.sleep(1)
-        
+    
     vehicles.get(id).armed = True
 
     # Confirm vehicle armed before attempting to take off
     while not vehicles.get(id).armed:
-        print("[Service] Line 56 : V ", id, " :: Waiting for arming...")
+        print("V", id, " :: Waiting for arming...")
         time.sleep(1)
 
-    print("[Service] Line 59 : V ", id, " :: Taking off!")
+    print("V", id, " :: Taking off!")
     vehicles.get(id).simple_takeoff(aTargetAltitude)  # Take off to target altitude
 
     # Wait until the vehicle reaches a safe height before processing the goto
@@ -85,18 +98,18 @@ def arm_and_takeoff(id, aTargetAltitude, mission_num):
 
         f.close()
         
-        print("[Service] Line 87 : V ", id, " :: Altitude: ", vehicles.get(id).location.global_relative_frame.alt)
+        print("V", id, " :: Altitude: ", vehicles.get(id).location.global_relative_frame.alt)
         # Break and return from function just below target altitude.
         if vehicles.get(id).location.global_relative_frame.alt >= aTargetAltitude * 0.95:
-            print("[Service] Line 90 : V ", id, " :: Reached target altitude")
+            print("V", id, " :: Reached target altitude")
             break
 
         # FAILSAFE JIKA BARONYA TIBA2 minus lebih dari 4
         if vehicles.get(id).location.global_relative_frame.alt <= -4:
             SEQ_MISSION_RUNNING == False
             vehicles.get(id).mode = VehicleMode("LAND")
-            print("[Service] Line 97 : ::: ABORTED :::")
-            print("[Service] Line 98 : Vehicle Mode ", vehicles.get(id).mode)
+            print("::: ABORTED :::")
+            print("Vehicle Mode", vehicles.get(id).mode)
             return "ABORT SUCCESS"
             
         time.sleep(0.5)
@@ -148,12 +161,12 @@ def goto(miss, mission_num):
 
         if SEQ_MISSION_RUNNING == False:
             vehicles.get(vehicle_id).mode = VehicleMode("LAND")
-            print("[Service] Line 150 : ::: ABORTED :::")
-            print("[Service] Line 151 : Vehicle Mode ", vehicles.get(vehicle_id).mode)
+            print("::: ABORTED :::")
+            print("Vehicle Mode", vehicles.get(vehicle_id).mode)
             return "ABORT SUCCESS"
 
-        print(" [Service] Line 154 : Waiting vehicle ", vehicle_id, "to waypoint", mission_num-1)
-        print("[Service] Line 155 : Vehicle Mode ", vehicles.get(vehicle_id).mode)
+        print(" Waiting vehicle", vehicle_id, "to the point")
+        print("Vehicle Mode", vehicles.get(vehicle_id).mode)
         time.sleep(0.5)
 
 def land(vehicle_id, mission_num):

@@ -1,14 +1,12 @@
 # src/api/controllers/engine_controller.py
 import time
 from flask import Blueprint, jsonify, Response, request
-from src.infrastructure.services import arm_and_takeoff, do_mission, upload_mission_text, gen, str2bool
+from src.infrastructure.services import arm_and_takeoff, do_mission, upload_mission_text, gen, str2bool, abort_mission
 from src.domain.constants import vehicles, vehicle_dataList, homepoint_list, waypoint_list, mission_all, mission_list
 from src.domain.exceptions import sse_encode, state_msg
-# from config.vehicle_config import VehicleConfig
 from dronekit import VehicleMode, LocationGlobalRelative, connect
 
-global latitude
-global longitude
+global mission_num
 
 drone_api = Blueprint('engine_controller', __name__)
 
@@ -22,13 +20,6 @@ def api_connect():
             addr = request.json['addr']
             baudrate = request.json['baudrate']
             id = int(request.json['id'])
-            # latitude = request.json['lat']
-            # longitude = request.json['lon']
-
-            # home = f'--home={latitude},{longitude},0,180'
-
-            # VehicleConfig.sitl_args = ['-I0', '--model', 'quad', home]
-            # VehicleConfig.sitl_args2 = ['-I1', '--model', 'quad', home]
 
             print('[Controller] Line 22 : connecting to drone...')
             nvehicle = None
@@ -49,7 +40,6 @@ def api_connect():
                 nvehicle.close()
                 print('[Controller] Line 40 :waiting for connection... (%s)' % str(e))
                 return jsonify(error=1, msg="Failed to Connect to Vehicle")
-
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:
@@ -239,11 +229,6 @@ def start_seq_mission():
     if request.method == 'POST' or request.method == 'PUT':
         try:
             data = request.json['data']
-            # lat = request.json['lat']
-            # lon = request.json['lon']
-            # get_lat()
-            # get_lon()
-            # get_lon(lon)
             for item in data:
                 item_formated = {
                     'id':int(item['vehicle_id']),
@@ -271,6 +256,7 @@ def start_seq_mission():
             sequenced_mission.append(data_append)
             data_append = []
         
+        # download_wp()
         do_mission(sequenced_mission)
         return jsonify(error=0, msg="do mission success")
 
@@ -281,6 +267,7 @@ API untuk batalkan terbang secara urut
 def abort_seq_mission():
     global SEQ_MISSION_RUNNING
     SEQ_MISSION_RUNNING = False
+    abort_mission()
     return "success"
 
 '''
