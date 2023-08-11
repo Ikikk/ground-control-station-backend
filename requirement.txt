@@ -1,0 +1,6 @@
+pip install flask
+pip install flask_cors 
+pip install dronekit
+pip install dronekit-sitl
+pip install mpu
+pip install numpy
